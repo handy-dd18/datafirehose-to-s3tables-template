@@ -1,61 +1,61 @@
-# Data Firehose to S3 Tables Terraform Template
+# Data Firehose から S3 Tables への Terraform テンプレート
 
 Amazon Data Firehose を利用してストリーミングデータを S3 Tables に配信する構成を構築する Terraform テンプレート
 
-This Terraform template creates an AWS infrastructure for streaming data ingestion into S3 Tables using Amazon Data Firehose with Lake Formation integration.
+このテンプレートは、Amazon Data Firehose と Lake Formation の統合を使用して、S3 Tables へのストリーミングデータ取り込みのための AWS インフラストラクチャを作成します。
 
-## Features
+## 機能
 
-- **Amazon Kinesis Data Firehose**: Automatically scales to handle streaming data ingestion
-- **S3 Tables Integration**: Direct delivery to S3 Tables with Iceberg format support
-- **Lake Formation Integration**: Built-in support for AWS Lake Formation data governance
-- **Error Handling**: Dedicated S3 bucket for error logging and retry handling
-- **CloudWatch Monitoring**: Optional CloudWatch Logs integration for monitoring and debugging
-- **IAM Security**: Least-privilege IAM roles and policies for secure access
-- **Configurable Buffering**: Adjustable buffer size and interval for optimized delivery
-- **Data Compression**: Support for multiple compression formats (GZIP, Snappy, etc.)
+- **Amazon Kinesis Data Firehose**: ストリーミングデータの取り込みを自動スケーリングで処理
+- **S3 Tables 統合**: Iceberg フォーマットのサポートにより S3 Tables への直接配信
+- **Lake Formation 統合**: AWS Lake Formation データガバナンスのビルトインサポート
+- **エラーハンドリング**: エラーログとリトライ処理用の専用 S3 バケット
+- **CloudWatch モニタリング**: モニタリングとデバッグのためのオプションの CloudWatch Logs 統合
+- **IAM セキュリティ**: セキュアなアクセスのための最小権限 IAM ロールとポリシー
+- **設定可能なバッファリング**: 最適化された配信のための調整可能なバッファサイズとインターバル
+- **データ圧縮**: 複数の圧縮フォーマット（GZIP、Snappy など）のサポート
 
-## Architecture
+## アーキテクチャ
 
 ```
-Streaming Data → Kinesis Data Firehose → S3 Tables (Iceberg Format)
-                        ↓
-                  Error Logs S3 Bucket
-                        ↓
-                  CloudWatch Logs
+ストリーミングデータ → Kinesis Data Firehose → S3 Tables (Iceberg フォーマット)
+                              ↓
+                        エラーログ S3 バケット
+                              ↓
+                        CloudWatch Logs
 ```
 
-## Prerequisites
+## 前提条件
 
-Before using this template, ensure you have:
+このテンプレートを使用する前に、以下を確認してください：
 
-1. **AWS Account**: Active AWS account with appropriate permissions
-2. **Terraform**: Terraform >= 1.0 installed ([Installation Guide](https://www.terraform.io/downloads))
-3. **AWS CLI**: AWS CLI configured with credentials ([Setup Guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html))
-4. **S3 Tables Setup**: 
-   - S3 Tables bucket created
-   - S3 Tables namespace and table configured
-   - Table schema defined
-5. **Lake Formation**: Lake Formation enabled in your AWS account (if using Lake Formation integration)
+1. **AWS アカウント**: 適切な権限を持つアクティブな AWS アカウント
+2. **Terraform**: Terraform >= 1.0 がインストールされていること（[インストールガイド](https://www.terraform.io/downloads)）
+3. **AWS CLI**: 認証情報が設定された AWS CLI（[セットアップガイド](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)）
+4. **S3 Tables のセットアップ**: 
+   - S3 Tables バケットが作成されていること
+   - S3 Tables の名前空間とテーブルが設定されていること
+   - テーブルスキーマが定義されていること
+5. **Lake Formation**: Lake Formation 統合を使用する場合、AWS アカウントで Lake Formation が有効になっていること
 
-## Quick Start
+## クイックスタート
 
-### 1. Clone the Repository
+### 1. リポジトリのクローン
 
 ```bash
 git clone https://github.com/handy-dd18/datafirehose-to-s3tables-template.git
 cd datafirehose-to-s3tables-template
 ```
 
-### 2. Configure Variables
+### 2. 変数の設定
 
-Create a `terraform.tfvars` file from the example:
+サンプルから `terraform.tfvars` ファイルを作成します：
 
 ```bash
 cp examples/terraform.tfvars.example terraform.tfvars
 ```
 
-Edit `terraform.tfvars` and update the values:
+`terraform.tfvars` を編集して値を更新します：
 
 ```hcl
 aws_region          = "us-east-1"
@@ -66,126 +66,126 @@ s3_table_name       = "your_table"
 s3_table_bucket_arn = "arn:aws:s3:::your-s3-tables-bucket"
 ```
 
-### 3. Initialize Terraform
+### 3. Terraform の初期化
 
 ```bash
 terraform init
 ```
 
-### 4. Review the Plan
+### 4. プランの確認
 
 ```bash
 terraform plan
 ```
 
-### 5. Apply the Configuration
+### 5. 設定の適用
 
 ```bash
 terraform apply
 ```
 
-Type `yes` when prompted to confirm the deployment.
+デプロイを確認するため、プロンプトが表示されたら `yes` と入力してください。
 
-### 6. Verify Deployment
+### 6. デプロイの検証
 
-After successful deployment, you can verify the resources:
+デプロイが成功したら、リソースを検証できます：
 
 ```bash
-# List outputs
+# 出力の一覧表示
 terraform output
 
-# Test the Firehose delivery stream
+# Firehose 配信ストリームのテスト
 aws firehose put-record \
   --delivery-stream-name $(terraform output -raw firehose_delivery_stream_name) \
   --record '{"Data":"eyJ0ZXN0IjoiZGF0YSJ9Cg=="}'
 ```
 
-## Configuration
+## 設定
 
-### Required Variables
+### 必須変数
 
-| Variable | Description | Example |
+| 変数 | 説明 | 例 |
 |----------|-------------|---------|
-| `s3_table_namespace` | S3 Tables namespace name | `"my_namespace"` |
-| `s3_table_name` | S3 Tables table name | `"my_table"` |
-| `s3_table_bucket_arn` | ARN of the S3 bucket for S3 Tables | `"arn:aws:s3:::my-bucket"` |
+| `s3_table_namespace` | S3 Tables の名前空間名 | `"my_namespace"` |
+| `s3_table_name` | S3 Tables のテーブル名 | `"my_table"` |
+| `s3_table_bucket_arn` | S3 Tables 用の S3 バケットの ARN | `"arn:aws:s3:::my-bucket"` |
 
-### Optional Variables
+### オプション変数
 
-| Variable | Description | Default |
+| 変数 | 説明 | デフォルト値 |
 |----------|-------------|---------|
-| `aws_region` | AWS region for resources | `"us-east-1"` |
-| `project_name` | Project name for resource naming | `"firehose-s3tables"` |
-| `environment` | Environment name | `"dev"` |
-| `s3_tables_catalog_arn` | S3 Tables catalog ARN (auto-constructed if not provided) | `""` |
-| `firehose_buffer_size` | Buffer size in MB (1-128) | `5` |
-| `firehose_buffer_interval` | Buffer interval in seconds (60-900) | `300` |
-| `firehose_compression_format` | Compression format | `"GZIP"` |
-| `enable_cloudwatch_logging` | Enable CloudWatch logging | `true` |
-| `lake_formation_enabled` | Enable Lake Formation integration | `true` |
-| `common_tags` | Common tags for all resources | `{"ManagedBy": "Terraform"}` |
+| `aws_region` | リソースの AWS リージョン | `"us-east-1"` |
+| `project_name` | リソース命名用のプロジェクト名 | `"firehose-s3tables"` |
+| `environment` | 環境名 | `"dev"` |
+| `s3_tables_catalog_arn` | S3 Tables カタログ ARN（指定しない場合は自動構築） | `""` |
+| `firehose_buffer_size` | バッファサイズ（MB、1-128） | `5` |
+| `firehose_buffer_interval` | バッファインターバル（秒、60-900） | `300` |
+| `firehose_compression_format` | 圧縮フォーマット | `"GZIP"` |
+| `enable_cloudwatch_logging` | CloudWatch ログ記録を有効化 | `true` |
+| `lake_formation_enabled` | Lake Formation 統合を有効化 | `true` |
+| `common_tags` | すべてのリソースに適用される共通タグ | `{"ManagedBy": "Terraform"}` |
 
-## Outputs
+## 出力
 
-| Output | Description |
+| 出力 | 説明 |
 |--------|-------------|
-| `firehose_delivery_stream_arn` | ARN of the Kinesis Firehose delivery stream |
-| `firehose_delivery_stream_name` | Name of the Kinesis Firehose delivery stream |
-| `firehose_role_arn` | ARN of the IAM role used by Firehose |
-| `error_logs_bucket_name` | Name of the S3 bucket for error logs |
-| `error_logs_bucket_arn` | ARN of the S3 bucket for error logs |
-| `cloudwatch_log_group_name` | Name of the CloudWatch log group |
+| `firehose_delivery_stream_arn` | Kinesis Firehose 配信ストリームの ARN |
+| `firehose_delivery_stream_name` | Kinesis Firehose 配信ストリームの名前 |
+| `firehose_role_arn` | Firehose が使用する IAM ロールの ARN |
+| `error_logs_bucket_name` | エラーログ用 S3 バケットの名前 |
+| `error_logs_bucket_arn` | エラーログ用 S3 バケットの ARN |
+| `cloudwatch_log_group_name` | CloudWatch ロググループの名前 |
 
-## Lake Formation Integration
+## Lake Formation 統合
 
-This template includes built-in support for AWS Lake Formation. When `lake_formation_enabled = true`:
+このテンプレートは AWS Lake Formation のビルトインサポートを含みます。`lake_formation_enabled = true` の場合：
 
-- The Firehose IAM role is granted Lake Formation permissions
-- Proper permissions for `GetDataAccess` and `GrantPermissions` are configured
-- The role can interact with Lake Formation-governed S3 Tables
+- Firehose IAM ロールに Lake Formation のアクセス許可が付与されます
+- `GetDataAccess` と `GrantPermissions` の適切な権限が設定されます
+- Lake Formation で管理される S3 Tables とロールが連携できます
 
-### Additional Lake Formation Setup
+### 追加の Lake Formation セットアップ
 
-You may need to configure additional Lake Formation permissions manually:
+追加の Lake Formation 権限を手動で設定する必要がある場合があります：
 
 ```bash
-# Grant Firehose role permissions on the S3 Tables location
+# S3 Tables の場所に対して Firehose ロールに権限を付与
 aws lakeformation grant-permissions \
   --principal DataLakePrincipalIdentifier=$(terraform output -raw firehose_role_arn) \
   --resource '{"Table":{"DatabaseName":"your_namespace","Name":"your_table"}}' \
   --permissions INSERT
 ```
 
-## Monitoring and Troubleshooting
+## モニタリングとトラブルシューティング
 
 ### CloudWatch Logs
 
-If CloudWatch logging is enabled, you can view Firehose logs:
+CloudWatch ログ記録が有効な場合、Firehose ログを表示できます：
 
 ```bash
 aws logs tail $(terraform output -raw cloudwatch_log_group_name) --follow
 ```
 
-### Error Logs in S3
+### S3 のエラーログ
 
-Check the error logs bucket for failed deliveries:
+配信失敗のエラーログバケットを確認します：
 
 ```bash
 aws s3 ls s3://$(terraform output -raw error_logs_bucket_name)/errors/ --recursive
 ```
 
-### Firehose Metrics
+### Firehose メトリクス
 
-Monitor Firehose metrics in CloudWatch:
+CloudWatch で Firehose メトリクスをモニタリングします：
 
 - DeliveryToS3.Success
 - DeliveryToS3.DataFreshness
 - IncomingBytes
 - IncomingRecords
 
-## Data Ingestion
+## データの取り込み
 
-### Using AWS SDK (Python)
+### AWS SDK の使用（Python）
 
 ```python
 import boto3
@@ -193,14 +193,14 @@ import json
 
 firehose = boto3.client('firehose')
 
-# Prepare your data
+# データの準備
 data = {
     "id": 1,
     "name": "example",
     "timestamp": "2024-01-01T00:00:00Z"
 }
 
-# Send to Firehose
+# Firehose への送信
 response = firehose.put_record(
     DeliveryStreamName='your-stream-name',
     Record={
@@ -209,7 +209,7 @@ response = firehose.put_record(
 )
 ```
 
-### Batch Records
+### バッチレコード
 
 ```python
 records = [
@@ -223,54 +223,54 @@ response = firehose.put_record_batch(
 )
 ```
 
-## Best Practices
+## ベストプラクティス
 
-1. **Buffer Configuration**: Adjust `firehose_buffer_size` and `firehose_buffer_interval` based on your data volume and latency requirements
-2. **Compression**: Use GZIP compression to reduce storage costs
-3. **Monitoring**: Enable CloudWatch logging for production environments
-4. **Error Handling**: Regularly monitor the error logs bucket for failed deliveries
-5. **Security**: Use least-privilege IAM policies and enable encryption at rest
-6. **Testing**: Test with sample data before deploying to production
+1. **バッファ設定**: データ量とレイテンシー要件に基づいて `firehose_buffer_size` と `firehose_buffer_interval` を調整してください
+2. **圧縮**: ストレージコストを削減するため GZIP 圧縮を使用してください
+3. **モニタリング**: 本番環境では CloudWatch ログ記録を有効にしてください
+4. **エラー処理**: 配信失敗に関してエラーログバケットを定期的にモニタリングしてください
+5. **セキュリティ**: 最小権限 IAM ポリシーを使用し、保存時の暗号化を有効にしてください
+6. **テスト**: 本番環境にデプロイする前にサンプルデータでテストしてください
 
-## Cost Optimization
+## コスト最適化
 
-- Adjust buffer settings to batch records efficiently
-- Enable compression to reduce storage costs
-- Monitor CloudWatch costs and adjust log retention as needed
-- Use S3 lifecycle policies for error logs bucket
+- レコードを効率的にバッチ処理するためバッファ設定を調整
+- ストレージコスト削減のため圧縮を有効化
+- CloudWatch コストをモニタリングし、必要に応じてログ保持期間を調整
+- エラーログバケットに S3 ライフサイクルポリシーを使用
 
-## Security Considerations
+## セキュリティに関する考慮事項
 
-- All S3 buckets have public access blocked by default
-- IAM roles follow the principle of least privilege
-- Error logs bucket has versioning enabled
-- Consider enabling S3 bucket encryption and CloudWatch Logs encryption for sensitive data
+- すべての S3 バケットはデフォルトでパブリックアクセスがブロックされています
+- IAM ロールは最小権限の原則に従います
+- エラーログバケットはバージョニングが有効です
+- 機密データには S3 バケット暗号化と CloudWatch Logs 暗号化の有効化を検討してください
 
-## Cleanup
+## クリーンアップ
 
-To destroy all resources created by this template:
+このテンプレートで作成したすべてのリソースを削除するには：
 
 ```bash
 terraform destroy
 ```
 
-**Warning**: This will delete all resources, including the error logs bucket. Ensure you have backed up any important data before destroying.
+**警告**: これによりエラーログバケットを含むすべてのリソースが削除されます。削除する前に重要なデータをバックアップしていることを確認してください。
 
-## Support and Contribution
+## サポートと貢献
 
-For issues, questions, or contributions:
+問題、質問、または貢献については：
 
-- Open an issue on GitHub
-- Submit a pull request with improvements
-- Contact the maintainers
+- GitHub で Issue を作成
+- 改善のためのプルリクエストを提出
+- メンテナーに連絡
 
-## License
+## ライセンス
 
-This template is provided as-is for use with AWS services.
+このテンプレートは AWS サービスでの使用のために現状のまま提供されます。
 
-## Additional Resources
+## 追加リソース
 
-- [Amazon Kinesis Data Firehose Documentation](https://docs.aws.amazon.com/firehose/)
-- [AWS S3 Tables Documentation](https://docs.aws.amazon.com/s3tables/)
-- [AWS Lake Formation Documentation](https://docs.aws.amazon.com/lake-formation/)
-- [Terraform AWS Provider Documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+- [Amazon Kinesis Data Firehose ドキュメント](https://docs.aws.amazon.com/firehose/)
+- [AWS S3 Tables ドキュメント](https://docs.aws.amazon.com/s3tables/)
+- [AWS Lake Formation ドキュメント](https://docs.aws.amazon.com/lake-formation/)
+- [Terraform AWS Provider ドキュメント](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
