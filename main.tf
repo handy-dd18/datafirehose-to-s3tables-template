@@ -1,3 +1,12 @@
+# AWS Provider Configuration
+provider "aws" {
+  region = var.aws_region
+
+  default_tags {
+    tags = var.common_tags
+  }
+}
+
 # S3 Bucket for error logging
 resource "aws_s3_bucket" "firehose_error_logs" {
   bucket = "${var.project_name}-${var.environment}-firehose-errors"
@@ -159,8 +168,8 @@ data "aws_caller_identity" "current" {}
 # Standard S3 ARN format: arn:aws:s3:::bucket-name
 locals {
   s3_table_bucket_name = try(
-    split(":::", var.s3_table_bucket_arn)[1],
-    element(split(":", var.s3_table_bucket_arn), length(split(":", var.s3_table_bucket_arn)) - 1)
+    regex("^arn:aws:s3:::(.+)$", var.s3_table_bucket_arn)[0],
+    split(":::", var.s3_table_bucket_arn)[1]
   )
   # Use provided catalog ARN or construct one from the bucket name
   catalog_arn = var.s3_tables_catalog_arn != "" ? var.s3_tables_catalog_arn : "arn:aws:s3-tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/${local.s3_table_bucket_name}"
@@ -195,7 +204,8 @@ resource "aws_kinesis_firehose_delivery_stream" "s3_tables_stream" {
     }
 
     destination_table_configuration {
-      table_name             = var.s3_table_name
+      table_name = var.s3_table_name
+      # Note: database_name maps to S3 Tables namespace concept
       database_name          = var.s3_table_namespace
       s3_error_output_prefix = "table-errors/"
     }
