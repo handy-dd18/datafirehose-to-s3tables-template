@@ -155,13 +155,18 @@ resource "aws_iam_role_policy" "firehose_lakeformation_policy" {
 # Data source for current AWS account
 data "aws_caller_identity" "current" {}
 
+# Extract bucket name from S3 Tables bucket ARN
+locals {
+  s3_table_bucket_name = split(":", var.s3_table_bucket_arn)[5]
+}
+
 # Kinesis Data Firehose Delivery Stream
 resource "aws_kinesis_firehose_delivery_stream" "s3_tables_stream" {
   name        = "${var.project_name}-${var.environment}-s3tables-stream"
   destination = "iceberg"
 
   iceberg_configuration {
-    catalog_arn = "arn:aws:s3tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/*"
+    catalog_arn = "arn:aws:s3tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/${local.s3_table_bucket_name}"
     role_arn    = aws_iam_role.firehose_role.arn
 
     s3_configuration {
@@ -191,15 +196,6 @@ resource "aws_kinesis_firehose_delivery_stream" "s3_tables_stream" {
 
     processing_configuration {
       enabled = false
-    }
-
-    dynamic "cloudwatch_logging_options" {
-      for_each = var.enable_cloudwatch_logging ? [1] : []
-      content {
-        enabled         = true
-        log_group_name  = aws_cloudwatch_log_group.firehose_logs[0].name
-        log_stream_name = aws_cloudwatch_log_stream.firehose_logs[0].name
-      }
     }
   }
 

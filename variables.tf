@@ -35,18 +35,33 @@ variable "firehose_buffer_size" {
   description = "Buffer size in MB for Firehose (1-128)"
   type        = number
   default     = 5
+
+  validation {
+    condition     = var.firehose_buffer_size >= 1 && var.firehose_buffer_size <= 128
+    error_message = "Buffer size must be between 1 and 128 MB."
+  }
 }
 
 variable "firehose_buffer_interval" {
   description = "Buffer interval in seconds for Firehose (60-900)"
   type        = number
   default     = 300
+
+  validation {
+    condition     = var.firehose_buffer_interval >= 60 && var.firehose_buffer_interval <= 900
+    error_message = "Buffer interval must be between 60 and 900 seconds."
+  }
 }
 
 variable "firehose_compression_format" {
   description = "Compression format for Firehose (UNCOMPRESSED, GZIP, ZIP, SNAPPY, HADOOP_SNAPPY)"
   type        = string
   default     = "GZIP"
+
+  validation {
+    condition     = contains(["UNCOMPRESSED", "GZIP", "ZIP", "SNAPPY", "HADOOP_SNAPPY"], var.firehose_compression_format)
+    error_message = "Compression format must be one of: UNCOMPRESSED, GZIP, ZIP, SNAPPY, HADOOP_SNAPPY."
+  }
 }
 
 variable "enable_cloudwatch_logging" {
