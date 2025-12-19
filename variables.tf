@@ -29,6 +29,11 @@ variable "s3_table_name" {
 variable "s3_table_bucket_arn" {
   description = "ARN of the S3 bucket for S3 Tables (standard S3 bucket ARN format: arn:aws:s3:::bucket-name)"
   type        = string
+
+  validation {
+    condition     = can(regex("^arn:aws:s3:::.+$", var.s3_table_bucket_arn))
+    error_message = "S3 bucket ARN must be in the format: arn:aws:s3:::bucket-name"
+  }
 }
 
 variable "s3_tables_catalog_arn" {

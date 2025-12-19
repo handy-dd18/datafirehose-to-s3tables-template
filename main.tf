@@ -166,11 +166,9 @@ data "aws_caller_identity" "current" {}
 
 # Extract bucket name from S3 Tables bucket ARN
 # Standard S3 ARN format: arn:aws:s3:::bucket-name
+# Variable validation ensures this format is correct
 locals {
-  s3_table_bucket_name = try(
-    regex("^arn:aws:s3:::(.+)$", var.s3_table_bucket_arn)[0],
-    split(":::", var.s3_table_bucket_arn)[1]
-  )
+  s3_table_bucket_name = regex("^arn:aws:s3:::(.+)$", var.s3_table_bucket_arn)[0]
   # Use provided catalog ARN or construct one from the bucket name
   catalog_arn = var.s3_tables_catalog_arn != "" ? var.s3_tables_catalog_arn : "arn:aws:s3-tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/${local.s3_table_bucket_name}"
 }
