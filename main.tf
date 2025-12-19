@@ -109,7 +109,7 @@ resource "aws_iam_role_policy" "firehose_policy" {
           "logs:PutLogEvents"
         ]
         Resource = var.enable_cloudwatch_logging ? [
-          "${aws_cloudwatch_log_group.firehose_logs[0].arn}:log-stream:${aws_cloudwatch_log_stream.firehose_logs[0].name}"
+          "${aws_cloudwatch_log_group.firehose_logs[0].arn}:*"
         ] : []
       },
       {
@@ -156,8 +156,14 @@ resource "aws_iam_role_policy" "firehose_lakeformation_policy" {
 data "aws_caller_identity" "current" {}
 
 # Extract bucket name from S3 Tables bucket ARN
+# Standard S3 ARN format: arn:aws:s3:::bucket-name
 locals {
-  s3_table_bucket_name = split(":", var.s3_table_bucket_arn)[5]
+  s3_table_bucket_name = try(
+    split(":::", var.s3_table_bucket_arn)[1],
+    element(split(":", var.s3_table_bucket_arn), length(split(":", var.s3_table_bucket_arn)) - 1)
+  )
+  # Use provided catalog ARN or construct one from the bucket name
+  catalog_arn = var.s3_tables_catalog_arn != "" ? var.s3_tables_catalog_arn : "arn:aws:s3tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/${local.s3_table_bucket_name}"
 }
 
 # Kinesis Data Firehose Delivery Stream
@@ -166,7 +172,7 @@ resource "aws_kinesis_firehose_delivery_stream" "s3_tables_stream" {
   destination = "iceberg"
 
   iceberg_configuration {
-    catalog_arn = "arn:aws:s3tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/${local.s3_table_bucket_name}"
+    catalog_arn = local.catalog_arn
     role_arn    = aws_iam_role.firehose_role.arn
 
     s3_configuration {

@@ -27,8 +27,14 @@ variable "s3_table_name" {
 }
 
 variable "s3_table_bucket_arn" {
-  description = "ARN of the S3 bucket for S3 Tables"
+  description = "ARN of the S3 bucket for S3 Tables (standard S3 bucket ARN format: arn:aws:s3:::bucket-name)"
   type        = string
+}
+
+variable "s3_tables_catalog_arn" {
+  description = "ARN of the S3 Tables catalog (optional - if not provided, will be constructed from s3_table_bucket_arn)"
+  type        = string
+  default     = ""
 }
 
 variable "firehose_buffer_size" {

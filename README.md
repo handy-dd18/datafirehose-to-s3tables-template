@@ -117,6 +117,7 @@ aws firehose put-record \
 | `aws_region` | AWS region for resources | `"us-east-1"` |
 | `project_name` | Project name for resource naming | `"firehose-s3tables"` |
 | `environment` | Environment name | `"dev"` |
+| `s3_tables_catalog_arn` | S3 Tables catalog ARN (auto-constructed if not provided) | `""` |
 | `firehose_buffer_size` | Buffer size in MB (1-128) | `5` |
 | `firehose_buffer_interval` | Buffer interval in seconds (60-900) | `300` |
 | `firehose_compression_format` | Compression format | `"GZIP"` |
