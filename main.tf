@@ -93,14 +93,14 @@ resource "aws_iam_role_policy" "firehose_policy" {
       {
         Effect = "Allow"
         Action = [
-          "s3tables:PutTableData",
-          "s3tables:GetTable",
-          "s3tables:GetTableBucket"
+          "s3-tables:PutTableData",
+          "s3-tables:GetTable",
+          "s3-tables:GetTableBucket"
         ]
         Resource = [
-          "arn:aws:s3tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/*",
-          "arn:aws:s3tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/*/namespace/${var.s3_table_namespace}",
-          "arn:aws:s3tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/*/namespace/${var.s3_table_namespace}/table/${var.s3_table_name}"
+          "arn:aws:s3-tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/*",
+          "arn:aws:s3-tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/*/namespace/${var.s3_table_namespace}",
+          "arn:aws:s3-tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/*/namespace/${var.s3_table_namespace}/table/${var.s3_table_name}"
         ]
       },
       {
@@ -163,7 +163,7 @@ locals {
     element(split(":", var.s3_table_bucket_arn), length(split(":", var.s3_table_bucket_arn)) - 1)
   )
   # Use provided catalog ARN or construct one from the bucket name
-  catalog_arn = var.s3_tables_catalog_arn != "" ? var.s3_tables_catalog_arn : "arn:aws:s3tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/${local.s3_table_bucket_name}"
+  catalog_arn = var.s3_tables_catalog_arn != "" ? var.s3_tables_catalog_arn : "arn:aws:s3-tables:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/${local.s3_table_bucket_name}"
 }
 
 # Kinesis Data Firehose Delivery Stream
