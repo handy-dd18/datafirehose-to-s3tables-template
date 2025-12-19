@@ -1,5 +1,5 @@
 # AWS Region Configuration
-aws_region = "us-east-1"
+aws_region = "ap-northeast-1"
 
 # Project Configuration
 project_name = "firehose-s3tables"
@@ -12,7 +12,7 @@ s3_table_name       = "my_table"
 s3_table_bucket_arn = "arn:aws:s3:::my-s3-tables-bucket"
 
 # Optional: Provide the S3 Tables catalog ARN if it differs from the constructed default
-# s3_tables_catalog_arn = "arn:aws:s3-tables:us-east-1:123456789012:bucket/my-s3-tables-bucket"
+# s3_tables_catalog_arn = "arn:aws:s3-tables:ap-northeast-1:123456789012:bucket/my-s3-tables-bucket"
 
 # Firehose Buffer Configuration
 firehose_buffer_size     = 5    # MB (1-128)
