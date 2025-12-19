@@ -1,0 +1,2 @@
+# datafirehose-to-s3tables-template
+Amazon Data Firehoseを利用してRDB上のデータをS3Tablesにストリーム配信する構成を構築するテンプレート
