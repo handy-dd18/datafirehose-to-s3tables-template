@@ -77,20 +77,31 @@ aws configure sso
 
 ## 1. サンプル IoT データの作成
 
-Firehose に投入するサンプル IoT データを JSON 形式で作成します。
+Firehose に投入するサンプル IoT データを JSON ファイルとして作成します。
 
-### サンプルデータ（単一レコード）
+### 1.1 単一レコード用ファイルの作成
 
-```json
+```bash
+cat << 'EOF' > sample-single.json
 {"device_id": "device-001", "temperature": 25.5, "humidity": 60.2, "timestamp": "2025-12-21T10:00:00Z"}
+EOF
 ```
 
-### サンプルデータ（複数レコード：テスト用）
+### 1.2 複数レコード用ファイルの作成（テスト用）
 
-```json
-{"device_id": "device-001", "temperature": 25.5, "humidity": 60.2, "timestamp": "2025-12-21T10:00:00Z"}
+```bash
+cat << 'EOF' > sample-batch.json
 {"device_id": "device-002", "temperature": 26.3, "humidity": 58.1, "timestamp": "2025-12-21T10:01:00Z"}
 {"device_id": "device-003", "temperature": 24.8, "humidity": 62.5, "timestamp": "2025-12-21T10:02:00Z"}
+{"device_id": "device-004", "temperature": 27.1, "humidity": 55.3, "timestamp": "2025-12-21T10:03:00Z"}
+EOF
+```
+
+### 1.3 ファイル作成確認
+
+```bash
+cat sample-single.json
+cat sample-batch.json
 ```
 
 > **注意**: Firehose は改行区切りの JSON（NDJSON）形式でデータを受け取ります。
@@ -911,10 +922,14 @@ aws firehose describe-delivery-stream \
 
 ## 13. Firehose へのサンプルデータ投入
 
+ステップ1で作成したサンプルデータファイルを使用して、Firehose にデータを投入します。
+
 ### 13.1 単一レコードの投入
 
+ステップ1.1で作成した `sample-single.json` を使用します。
+
 ```bash
-DATA=$(echo -n '{"device_id": "device-001", "temperature": 25.5, "humidity": 60.2, "timestamp": "2025-12-21T10:00:00Z"}' | base64 -w 0)
+DATA=$(cat sample-single.json | base64 -w 0)
 aws firehose put-record \
     --delivery-stream-name iot-sensor-data-stream \
     --record "{\"Data\": \"${DATA}\"}" \
@@ -923,14 +938,17 @@ aws firehose put-record \
 
 ### 13.2 複数レコードの投入
 
+ステップ1.2で作成した `sample-batch.json` を使用します。
+
 ```bash
-DATA1=$(echo -n '{"device_id": "device-002", "temperature": 26.3, "humidity": 58.1, "timestamp": "2025-12-21T10:01:00Z"}' | base64 -w 0)
-DATA2=$(echo -n '{"device_id": "device-003", "temperature": 24.8, "humidity": 62.5, "timestamp": "2025-12-21T10:02:00Z"}' | base64 -w 0)
-DATA3=$(echo -n '{"device_id": "device-004", "temperature": 27.1, "humidity": 55.3, "timestamp": "2025-12-21T10:03:00Z"}' | base64 -w 0)
+# 各行を個別に読み込んでbase64エンコード
+RECORDS=$(cat sample-batch.json | while read -r line; do
+    echo -n "{\"Data\": \"$(echo -n "$line" | base64 -w 0)\"},"
+done | sed 's/,$//')
 
 aws firehose put-record-batch \
     --delivery-stream-name iot-sensor-data-stream \
-    --records "[{\"Data\": \"${DATA1}\"}, {\"Data\": \"${DATA2}\"}, {\"Data\": \"${DATA3}\"}]" \
+    --records "[${RECORDS}]" \
     --region ${AWS_REGION}
 ```
 
@@ -1034,6 +1052,7 @@ aws iam delete-role --role-name AthenaS3TablesAccessRole
 aws iam delete-policy --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/AthenaS3TablesAccessPolicy
 
 # 7. ローカルの JSON ファイル削除
+rm -f sample-single.json sample-batch.json
 rm -f table-definition.json
 rm -f athena-trust-policy.json athena-s3tables-policy.json
 rm -f firehose-trust-policy.json firehose-s3tables-policy.json
